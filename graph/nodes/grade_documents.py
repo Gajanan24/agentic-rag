@@ -19,9 +19,10 @@ def grade_documents(state: GraphState) -> Dict[str, Any]:
         state (dict): Filtered out irrelevant documents and updated web_search state
     """
        
-       print("check documents relevance...to question")
+       print("----check documents relevance...to question-----")
        question = state["question"]
        documents = state["documents"]
+       web_search = False
 
        filtered_documents = []
        for document in documents:

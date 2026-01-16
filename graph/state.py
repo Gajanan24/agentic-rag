@@ -1,7 +1,7 @@
-from typing import List, TypedList
+from typing import List, TypedDict
 
 
-class GraphState(TypedList):
+class GraphState(TypedDict):
     """
     Represents the state of a graph.
 
