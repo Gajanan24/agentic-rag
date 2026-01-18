@@ -7,6 +7,8 @@ from graph.nodes import generate, grade_documents, web_search, retrieve
 from graph.chains.answer_grader import answer_grader
 from graph.chains.hallucination_grader import hallucination_grader
 
+from graph.chains.router import question_router, RouteQuery
+
 from graph.state import GraphState
 
 load_dotenv()
@@ -49,8 +51,24 @@ def check_hallucination(state:GraphState) -> str:
     else:
         print("---HALLUCINATION GRADE - Hallucination detected---")
         return "not supported"
-       
 
+
+def route_question(state: GraphState) -> str:
+    print("---ROUTE QUESTION---")
+    question = state["question"]
+    source: RouteQuery = question_router.invoke({"question": question})
+
+    datasource = (source.datasource or "").lower()
+
+    if datasource == WEB_SEARCH:
+        print("---ROUTE QUESTION TO WEB SEARCH---")
+        return WEB_SEARCH
+    elif datasource == "vectorstore":
+        print("---ROUTE QUESTION TO RAG---")
+        return RETRIEVE
+
+    print("---ROUTE QUESTION FALLBACK → WEB SEARCH---")
+    return WEB_SEARCH
 
 
 workflow = StateGraph(GraphState)
@@ -61,7 +79,16 @@ workflow.add_node(WEB_SEARCH, web_search)
 workflow.add_node(GENERATE, generate)
 
 
-workflow.set_entry_point(RETRIEVE)
+workflow.set_conditional_entry_point(
+    route_question,
+    {
+        WEB_SEARCH: WEB_SEARCH,
+        RETRIEVE: RETRIEVE,
+    },
+)
+
+
+# workflow.set_entry_point(RETRIEVE)
 workflow.add_edge(RETRIEVE, GRADE_DOCUMENTS)
 workflow.add_conditional_edges(
     GRADE_DOCUMENTS,
@@ -85,7 +112,7 @@ workflow.add_conditional_edges(
 
 
 workflow.add_edge(WEB_SEARCH, GENERATE)
-workflow.add_edge(GENERATE, END)
+# workflow.add_edge(GENERATE, END)
 
 app = workflow.compile()
 
