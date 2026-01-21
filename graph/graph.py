@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+load_dotenv()
 
 from langgraph.graph import END, StateGraph
 from graph.const import RETRIEVE, GRADE_DOCUMENTS, GENERATE, WEB_SEARCH
@@ -11,7 +12,6 @@ from graph.chains.router import question_router, RouteQuery
 
 from graph.state import GraphState
 
-load_dotenv()
 
 def decide_to_generate(state):
     print("------assess graded dociuments ----")
